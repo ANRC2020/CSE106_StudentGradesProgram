@@ -5,7 +5,7 @@ import sqlalchemy as db
 import os
 import pandas as pd
 from TableSetup import Reset_Database
-
+from flask_cors import CORS
 try:
     os.system("cls")
 except:
@@ -25,7 +25,7 @@ global viewCourse
 viewCourse = ""
 
 app = Flask(__name__)
-
+CORS(app)
 @app.route('/<user_ID>', methods=['GET'])
 
 def func(user_ID):
