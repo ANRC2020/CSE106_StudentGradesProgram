@@ -1,7 +1,11 @@
+from sqlalchemy.ext.declarative import declarative_base
 import json
 import time
 from flask import Flask, request, jsonify
+from flask_sqlalchemy import SQLAlchemy
+from flask_admin import Admin
 import sqlalchemy as db
+from flask_admin.contrib.sqla import ModelView
 import os
 import pandas as pd
 from TableSetup import Reset_Database
@@ -13,10 +17,61 @@ except:
 
 # Returned Access Points for each of the Tables
 departments, teachers, classes, students, enrollments, admins = Reset_Database()
+app = Flask(__name__)
 
-engine = db.create_engine('sqlite:///SchoolDataBase.sqlite?check_same_thread=False')
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///SchoolDataBase.sqlite'
+# app.config['SECRET_KEY'] = 'mysecret'
+# db2 = SQLAlchemy(app)
+# CORS(app)
+
+engine = db.create_engine(
+    'sqlite:///SchoolDataBase.sqlite?check_same_thread=False')
 conn = engine.connect()
-metadata = db.MetaData()
+
+
+# define declarative base
+Base = declarative_base()
+
+# reflect current database engine to metadata
+metadata = db.MetaData(engine)
+metadata.reflect()
+
+# build your User class on existing users table
+
+
+class Students(Base):
+    __table__ = db.Table('students', Base.metadata,
+                         autoload=True, autoload_with=engine)
+
+
+class Admins(Base):
+    __table__ = db.Table('admins', Base.metadata,
+                         autoload=True, autoload_with=engine)
+
+
+class Classes(Base):
+    __table__ = db.Table('classes', Base.metadata,
+                         autoload=True, autoload_with=engine)
+
+
+class Departments(Base):
+    __table__ = db.Table('departments', Base.metadata,
+                         autoload=True, autoload_with=engine)
+
+
+# class Enrollments(Base):
+#     __table__ = db.Table('enrollments', Base.metadata,
+#                          autoload=True, autoload_with=engine)
+
+
+# class Teachers(Base):
+#     __table__ = db.Table('teachers', Base.metadata,
+#                          autoload=True, autoload_with=engine)
+
+
+Session = db.orm.sessionmaker(engine)
+session = Session()
+
 
 global ID
 ID = ""
@@ -24,17 +79,15 @@ ID = ""
 global viewCourse
 viewCourse = ""
 
-app = Flask(__name__)
-CORS(app)
-@app.route('/<user_ID>', methods=['GET'])
 
+@app.route('/<user_ID>', methods=['GET'])
 def func(user_ID):
-    
+
     global ID
 
     ID = user_ID
-
-    if(request.method == "GET"):
+    print(ID)
+    if (request.method == "GET"):
         print(request.method)
 
         HT = {}
@@ -62,13 +115,13 @@ def func(user_ID):
 
         return json.dumps(HT)
 
-@app.route('/Student', methods=['GET'])
 
+@app.route('/Student', methods=['GET'])
 def Student_func():
 
     global ID
 
-    if(request.method == "GET"):
+    if (request.method == "GET"):
         print(f"Student: {request.method}")
 
         HT = {}
@@ -95,7 +148,7 @@ def Student_func():
 
         for i in range(df.shape[0]):
             if df.iloc[i][0] == ID:
-                
+
                 teacher_ID = ""
                 course_Des = ""
                 num_students_enrolled = 0
@@ -111,24 +164,27 @@ def Student_func():
                         num_students_enrolled = df2.iloc[j]['num_students_enrolled']
                         course_time = df2.iloc[j]['times']
                         break
-                
+
                 teacher_name = ""
 
                 for j in range(df3.shape[0]):
                     if df3.iloc[j]['teacher_ID'] == teacher_ID:
                         teacher_name = df3.iloc[j]['name']
 
-                HT[course_Des] = teacher_name + " " + course_time + " " +  str(df.iloc[i][2]) + " " + str(num_students_enrolled) + " " + str(limit_student_enrolled)
+                HT[course_Des] = teacher_name + " " + course_time + " " + \
+                    str(df.iloc[i][2]) + " " + str(num_students_enrolled) + \
+                    " " + str(limit_student_enrolled)
 
         return json.dumps(HT)
 
+
 @app.route('/Student/ManageEnrollment', methods=['GET'])
 def Manage_Enrollment():
-        
+
     # Save the courses the student is in and their times
     student_courses = []
     student_course_times = []
-    
+
     for i in range(1):
         results = conn.execute(db.select([enrollments])).fetchall()
         df = pd.DataFrame(results)
@@ -144,7 +200,7 @@ def Manage_Enrollment():
 
         for i in range(df.shape[0]):
             if df.iloc[i][0] == ID:
-                
+
                 teacher_ID = ""
                 course_Des = ""
                 num_students_enrolled = 0
@@ -160,7 +216,7 @@ def Manage_Enrollment():
                         num_students_enrolled = df2.iloc[j]['num_students_enrolled']
                         course_time = df2.iloc[j]['times']
                         break
-                
+
                 teacher_name = ""
 
                 for j in range(df3.shape[0]):
@@ -172,7 +228,7 @@ def Manage_Enrollment():
 
     # print(f"stud courses = {student_courses}, stud times = {student_course_times}")
 
-    if(request.method == "GET"):
+    if (request.method == "GET"):
         print(f"Student: {request.method}")
 
         HT = {}
@@ -186,7 +242,7 @@ def Manage_Enrollment():
         df3.columns = results3[0].keys()
 
         for i in range(df2.shape[0]):
-            
+
             teacher_ID = df2.iloc[i]['teacher_ID']
 
             teacher_name = ""
@@ -195,7 +251,7 @@ def Manage_Enrollment():
                 if df3.iloc[j]['teacher_ID'] == teacher_ID:
                     teacher_name = df3.iloc[j]['name']
                     break
-            
+
             type = "Add"
 
             if df2.iloc[i]['times'] in student_course_times:
@@ -207,18 +263,20 @@ def Manage_Enrollment():
             if df2.iloc[i]['course_Des'] in student_courses:
                 type = "Drop"
 
-
             # Course Name	Instructor	Time	Students Enrolled	Add Class   Button Type(Add/Drop)
-            HT[df2.iloc[i]['course_Des']] = teacher_name + " " + df2.iloc[i]['times'] + " " + str(df2.iloc[i]['num_students_enrolled']) + " " + str(df2.iloc[i]['capacity']) + " " + type
+            HT[df2.iloc[i]['course_Des']] = teacher_name + " " + df2.iloc[i]['times'] + " " + \
+                str(df2.iloc[i]['num_students_enrolled']) + \
+                " " + str(df2.iloc[i]['capacity']) + " " + type
 
         # print(HT)
 
         return HT
 
+
 @app.route('/Student/ManageEnrollment/Add', methods=['POST'])
 def Manage_Enrollment_Add():
 
-    if(request.method == "POST"):
+    if (request.method == "POST"):
 
         # print(request.json['course'])
 
@@ -235,23 +293,26 @@ def Manage_Enrollment_Add():
                 course_ID = df2.iloc[i]['course_ID']
                 num_students_enrolled = df2.iloc[i]['num_students_enrolled'] + 1
 
-        query = db.insert(enrollments).values(student_ID = ID, course_ID = course_ID, grade=-1)
+        query = db.insert(enrollments).values(
+            student_ID=ID, course_ID=course_ID, grade=-1)
         conn.execute(query)
 
         # Increment the number of students enrolled in the class by 1
 
         # print(num_students_enrolled)
 
-        query = db.update(classes).values(num_students_enrolled = int.from_bytes(num_students_enrolled, "little"))
+        query = db.update(classes).values(
+            num_students_enrolled=int.from_bytes(num_students_enrolled, "little"))
         query = query.where(classes.columns.course_ID == course_ID)
         conn.execute(query)
 
-    return {0:0}
+    return {0: 0}
+
 
 @app.route('/Student/ManageEnrollment/Drop', methods=['DELETE'])
 def Manage_Enrollment_Drop():
 
-    if(request.method == "DELETE"):
+    if (request.method == "DELETE"):
 
         # print(request.json['course'], request.json['num_students'])
 
@@ -266,29 +327,30 @@ def Manage_Enrollment_Drop():
         df2.columns = results2[0].keys()
 
         course_ID = ""
-
+        course_Num = 0
         for i in range(df2.shape[0]):
             if df2.iloc[i]['course_Des'] == request.json['course']:
                 course_ID = df2.iloc[i]['course_ID']
+                course_Num = df2.iloc[i]['num_students_enrolled']
 
         query = db.delete(enrollments)
-        query = query.where(enrollments.columns.student_ID == ID, enrollments.columns.course_ID == course_ID)
+        query = query.where(enrollments.columns.student_ID ==
+                            ID, enrollments.columns.course_ID == course_ID)
         conn.execute(query)
-
-        temp = int(request.json['num_students']) - 1
-
-        query = db.update(classes).values(num_students_enrolled = temp)
+        print("YEET" + request.json['course'])
+        query = db.update(classes).values(num_students_enrolled=course_Num)
         query = query.where(classes.columns.course_ID == course_ID)
         conn.execute(query)
 
-    return {0:0}
+    return {0: 0}
+
 
 @app.route('/Teacher', methods=['GET'])
 def Teacher_func():
 
     global ID
 
-    if(request.method == "GET"):
+    if (request.method == "GET"):
         print(f"Teacher: {request.method}")
 
         HT = {}
@@ -303,16 +365,19 @@ def Teacher_func():
                 HT[df.iloc[i]["name"]] = ID
                 teacher_name = df.iloc[i]["name"]
                 break
-        
+
         results2 = conn.execute(db.select([classes])).fetchall()
         df2 = pd.DataFrame(results2)
         df2.columns = results2[0].keys()
 
         for i in range(df2.shape[0]):
             if df2.iloc[i]["teacher_ID"] == ID:
-                HT[df2.iloc[i]["course_ID"]] = df2.iloc[i]["course_Des"] + "|" + teacher_name + "|" + df2.iloc[i]["times"] + "|" + str(df2.iloc[i]["num_students_enrolled"]) + "|" + str(df2.iloc[i]["capacity"])
+                HT[df2.iloc[i]["course_ID"]] = df2.iloc[i]["course_Des"] + "|" + teacher_name + "|" + \
+                    df2.iloc[i]["times"] + "|" + str(
+                        df2.iloc[i]["num_students_enrolled"]) + "|" + str(df2.iloc[i]["capacity"])
 
         return HT
+
 
 @app.route('/Teacher/SetCourse/<course_ID>', methods=['GET'])
 def Teacher_Set_Course(course_ID):
@@ -323,9 +388,10 @@ def Teacher_Set_Course(course_ID):
 
     print(viewCourse)
 
-    HT = {"Placeholder":0}
+    HT = {"Placeholder": 0}
 
     return HT
+
 
 @app.route('/Teacher/GetCourse', methods=['GET'])
 def Teacher_Course_Info():
@@ -334,7 +400,7 @@ def Teacher_Course_Info():
 
     course_ID = viewCourse
 
-    if(request.method == 'GET'):
+    if (request.method == 'GET'):
 
         HT = {}
 
@@ -346,13 +412,12 @@ def Teacher_Course_Info():
             if df2.iloc[i]['teacher_ID'] == ID:
                 HT[df2.iloc[i]['name']] = ID
                 break
-        
+
         HT[viewCourse] = -1
 
         results = conn.execute(db.select([enrollments])).fetchall()
         df = pd.DataFrame(results)
         df.columns = results[0].keys()
-
 
         for i in range(df.shape[0]):
             if df.iloc[i]['course_ID'] == course_ID:
@@ -373,6 +438,7 @@ def Teacher_Course_Info():
 
         return HT
 
+
 @app.route('/Teacher/UpdateGrade', methods=['PUT'])
 def Teacher_Update_Grade():
 
@@ -380,7 +446,7 @@ def Teacher_Update_Grade():
 
     course_ID = viewCourse
 
-    if(request.method == 'PUT'):
+    if (request.method == 'PUT'):
 
         results = conn.execute(db.select([students])).fetchall()
         df = pd.DataFrame(results)
@@ -393,9 +459,18 @@ def Teacher_Update_Grade():
                 student_ID = df.iloc[i]['student_ID']
 
         query = db.update(enrollments).values(grade=request.json['newGrade'])
-        query = query.where(enrollments.columns.student_ID == student_ID, enrollments.columns.course_ID == course_ID)
+        query = query.where(enrollments.columns.student_ID ==
+                            student_ID, enrollments.columns.course_ID == course_ID)
         conn.execute(query)
 
         return {"0": 0}
 
-app.run()
+
+admin = Admin(app)
+admin.add_view(ModelView(Students, session))
+admin.add_view(ModelView(Admins, session))
+admin.add_view(ModelView(Classes, session))
+admin.add_view(ModelView(Departments, session))
+# admin.add_view(ModelView(Enrollments, session))
+# admin.add_view(ModelView(Teachers, session))
+app.run(debug=True)
