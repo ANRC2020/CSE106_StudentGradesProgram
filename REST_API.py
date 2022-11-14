@@ -18,7 +18,8 @@ except:
 # Returned Access Points for each of the Tables
 departments, teachers, classes, students, enrollments, admins = Reset_Database()
 app = Flask(__name__)
-
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///SchoolDataBase.sqlite?check_same_thread=False'
+app.config['SECRET_KEY'] = 'ebfuowbfu'
 CORS(app)
 
 engine = db.create_engine(
@@ -335,7 +336,8 @@ def Manage_Enrollment_Drop():
                             ID, enrollments.columns.course_ID == course_ID)
         conn.execute(query)
         print("YEET" + request.json['course'])
-        query = db.update(classes).values(num_students_enrolled=int.from_bytes((course_Num-1), "little"))
+        query = db.update(classes).values(
+            num_students_enrolled=int.from_bytes((course_Num-1), "little"))
         query = query.where(classes.columns.course_ID == course_ID)
         conn.execute(query)
 
