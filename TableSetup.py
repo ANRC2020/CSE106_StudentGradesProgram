@@ -166,11 +166,11 @@ def Initialize_Departments():
 
     # Define and Create the Department Table
     departments = db.Table('departments', metadata,
-                           db.Column('dep_ID', db.Integer(),
-                                     primary_key=True, nullable=False),
-                           db.Column('dep_name', db.String(
-                               255), nullable=False)
-                           )
+            db.Column('dep_ID', db.Integer(), nullable=False),
+            db.Column('dep_name', db.String(
+                255), nullable=False),
+            db.Column('dep_primary_key', db.Integer(), primary_key=True, nullable=False)
+            )
 
     metadata.create_all(engine)  # Creates the table
 
@@ -178,7 +178,7 @@ def Initialize_Departments():
 
     for i, department in enumerate(dep_subjects):
         query = db.insert(departments).values(
-            dep_ID=i + 1, dep_name=department)
+            dep_ID=i + 1, dep_name=department, dep_primary_key=i)
         conn.execute(query)
 
     return departments
@@ -188,14 +188,15 @@ def Initialize_Teachers():
     # Define and Create the teachers Table
     teachers = db.Table('teachers', metadata,
                         db.Column('teacher_ID', db.String(
-                            255), primary_key=True, nullable=False),
+                            255), nullable=False),
                         db.Column('name', db.String(255), nullable=False),
                         db.Column('password', db.String(255), nullable=False),
                         db.Column('date_of_birth', db.String(
                             255), nullable=False),
                         db.Column('department', db.String(
                             255), nullable=False),
-                        db.Column('num_classes', db.Integer(), nullable=False)
+                        db.Column('num_classes', db.Integer(), nullable=False),
+                        db.Column('teacher_primary_key', db.Integer(), primary_key=True, nullable=False)
                         )
 
     metadata.create_all(engine)  # Creates the table
@@ -219,7 +220,7 @@ def Initialize_Teachers():
             dep_choice = 'Engineering'
 
         query = db.insert(teachers).values(teacher_ID=str(9000 + i), name=teacher, password=generate_password(),
-                                           date_of_birth=generate_DOB('teacher'), department=dep_choice, num_classes=0)
+                                           date_of_birth=generate_DOB('teacher'), department=dep_choice, num_classes=0, teacher_primary_key = i)
         conn.execute(query)
 
     return teachers
@@ -232,21 +233,21 @@ def Initialize_Classes(teachers):
 
     # Define and Create the Classes Table
     classes = db.Table('classes', metadata,
-                       db.Column('course_ID', db.String(255),
-                                 primary_key=True, nullable=False),
+                       db.Column('course_ID', db.String(255), nullable=False),
                        db.Column('course_Des', db.String(255), nullable=False),
                        db.Column('dep_name', db.String(255), nullable=False),
                        db.Column('teacher_ID', db.String(255)),
                        db.Column('num_students_enrolled',
                                  db.Integer(), nullable=False),
                        db.Column('capacity', db.Integer(), nullable=False),
-                       db.Column('times', db.String(255), nullable=False)
+                       db.Column('times', db.String(255), nullable=False),
+                        db.Column('class_primary_key', db.Integer(), primary_key=True, nullable=False)
                        )
 
     metadata.create_all(engine)  # Creates the table
 
     # Populate the classes Table
-    # k = 0
+    k = 0
 
     for i in range(len(course_dic)):
         for j, course in enumerate(course_des[i]):
@@ -262,10 +263,10 @@ def Initialize_Classes(teachers):
 
             temp = random.randint(0, len(meets) - 1)
             query = db.insert(classes).values(course_ID=str(course_dic[i] + "_" + str((j*10))), course_Des=course, dep_name=dep_name, teacher_ID=teacher_ID,
-                                              num_students_enrolled=0, capacity=random.randint(4, 10) * 2, times=str(meets[temp][0] + " " + meets[temp][random.randint(1, len(meets[temp]) - 1)]))
+                                              num_students_enrolled=0, capacity=random.randint(4, 10) * 2, times=str(meets[temp][0] + " " + meets[temp][random.randint(1, len(meets[temp]) - 1)]), class_primary_key=k)
             conn.execute(query)
 
-            # k += 1
+            k += 1
             # print(f"Created Class #{k}\n")
 
     return classes
@@ -275,11 +276,11 @@ def Initialize_Students():
     # Define and Create the students Table
     students = db.Table('students', metadata,
                         db.Column('student_ID', db.String(
-                            255), primary_key=True, nullable=False),
+                            255), nullable=False),
                         db.Column('name', db.String(255), nullable=False),
                         db.Column('password', db.String(255), nullable=False),
-                        db.Column('date_of_birth', db.String(
-                            255), nullable=False)
+                        db.Column('date_of_birth', db.String(255), nullable=False),
+                        db.Column('student_primary_key', db.Integer(), primary_key=True, nullable=False)
                         )
 
     metadata.create_all(engine)  # Creates the table
@@ -292,7 +293,7 @@ def Initialize_Students():
 
     for i, stud_name in enumerate(student):
         query = db.insert(students).values(student_ID=str(1000 + i), name=stud_name,
-                                           password=generate_password(), date_of_birth=generate_DOB('student'))
+                                           password=generate_password(), date_of_birth=generate_DOB('student'), student_primary_key=i)
         conn.execute(query)
 
     return students
@@ -301,13 +302,13 @@ def Initialize_Students():
 def Initalize_Enrollments(students, classes):
     # Define and Create the enrollments Table
     enrollments = db.Table('enrollments', metadata,
-                           db.Column('student_ID', db.String(
-                               255), nullable=False),
-                           db.Column('course_ID', db.String(
-                               255), nullable=False),
-                           db.Column('grade', db.Float(10), nullable=False),
-                           db.Column('enroll_ID', db.Integer(), primary_key=True, nullable=False)
-                           )
+        db.Column('student_ID', db.String(
+            255), nullable=False),
+        db.Column('course_ID', db.String(
+            255), nullable=False),
+        db.Column('grade', db.Float(10), nullable=False),
+        db.Column('enroll_ID', db.Integer(), primary_key=True, nullable=False)
+        )
 
     metadata.create_all(engine)  # Creates the table
 
@@ -382,13 +383,12 @@ def Initalize_Enrollments(students, classes):
 def Initalize_Admins():
     # Define and Create the admins Table
     admins = db.Table('admins', metadata,
-                      db.Column('admin_ID', db.String(255),
-                                primary_key=True, nullable=False),
-                      db.Column('name', db.String(255), nullable=False),
-                      db.Column('password', db.String(255), nullable=False),
-                      db.Column('date_of_birth', db.String(
-                          255), nullable=False)
-                      )
+        db.Column('admin_ID', db.String(255), nullable=False),
+        db.Column('name', db.String(255), nullable=False),
+        db.Column('password', db.String(255), nullable=False),
+        db.Column('date_of_birth', db.String(255), nullable=False),
+        db.Column('admin_primary_key', db.Integer(), primary_key=True, nullable=False)
+        )
 
     metadata.create_all(engine)  # Creates the table
 
