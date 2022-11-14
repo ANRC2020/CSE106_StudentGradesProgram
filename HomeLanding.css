@@ -1,0 +1,30 @@
+
+    .form {
+        font: 95% Arial, Helvetica, sans-serif;
+        max-width: 400px;
+        margin: 10px auto;
+        padding: 16px;
+        background: #F7F7F7;
+    }
+
+    .display {
+        box-sizing: border-box;
+        width: 100%;
+        padding: 3%;
+        background: #fff;
+        border-bottom: 2px solid #fff;
+        border-top-style: none;
+        border-right-style: none;
+        border-left-style: none;
+        color: black;
+    }
+
+    .login {
+        background: #43D1AF;
+        padding: 10px 185px;
+        font-size: 140%;
+        font-weight: 300;
+        text-align: center;
+        color: #fff;
+        margin: -16px -16px 16px -16px;
+    }

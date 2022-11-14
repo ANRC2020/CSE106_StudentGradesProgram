@@ -2,131 +2,190 @@
 <html lang="en">
 <title>Student View</title>
 
-<head><link rel='stylesheet' href='FrontEndStyle.css'></head>
+<head>
+    <link rel='stylesheet' href='FrontEndStyle.css'>
+</head>
+
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
-    table {
-      border-collapse: collapse;
-      border-spacing: 0;
-      width: 100%;
-      border: 1px solid #ddd;
-    }
-    
-    th, td {
-      text-align: left;
-      padding: 16px;
-    }
-    
-    tr:nth-child(even) {
-      background-color: #f2f2f2;
-    }
+        table {
+            border-collapse: collapse;
+            border-spacing: 0;
+            width: 100%;
+            border: 1px solid #ddd;
+        }
+
+        th,
+        td {
+            text-align: left;
+            padding: 16px;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
     </style>
 </head>
 
 <script src="StudentLanding.js"></script>
 
-<h1 id="Student Greeting"></h1>
 
 <script>
     var student_ID = sessionStorage.getItem("student_ID");
 </script>
 
-<body onLoad="javascript:InitializeStudentInfo()" ></body>
+<body onLoad="javascript:InitializeStudentInfo()"></body>
 
 <style>
-  body {font-family: Arial;}
-  
-  /* Style the tab */
-  .tab {
-    overflow: hidden;
-    border: 1px solid #ccc;
-    background-color: #f1f1f1;
-  }
-  
-  /* Style the buttons inside the tab */
-  .tab button {
-    background-color: inherit;
-    float: left;
-    border: none;
-    outline: none;
-    cursor: pointer;
-    padding: 14px 16px;
-    transition: 0.3s;
-    font-size: 17px;
-  }
-  
-  /* Change background color of buttons on hover */
-  .tab button:hover {
-    background-color: #ddd;
-  }
-  
-  /* Create an active/current tablink class */
-  .tab button.active {
-    background-color: #ccc;
-  }
-  
-  /* Style the tab content */
-  .tabcontent {
-    display: none;
-    padding: 6px 12px;
-    border: 1px solid #ccc;
-    border-top: none;
-  }
-  </style>
+    body {
+        font-family: Arial;
+    }
 
-  <button onclick="LogOut()">Log Out</button>
+    /* Style the tab */
+    .tab {
+        overflow: hidden;
+        border: 1px solid #ccc;
+        background-color: #f1f1f1;
+    }
 
-  <h2></h2>
-  
-  <div class="tab">
+    /* Style the buttons inside the tab */
+    .tab button {
+        background-color: inherit;
+        float: left;
+        border: none;
+        outline: none;
+        cursor: pointer;
+        padding: 14px 16px;
+        transition: 0.3s;
+        font-size: 17px;
+    }
+
+    /* Change background color of buttons on hover */
+    .tab button:hover {
+        background-color: #ddd;
+    }
+
+    /* Create an active/current tablink class */
+    .tab button.active {
+        background-color: #ccc;
+    }
+
+    /* Style the tab content */
+    .tabcontent {
+        display: none;
+        padding: 6px 12px;
+        border: 1px solid #ccc;
+        border-top: none;
+    }
+
+    .dropbtn {
+        background-color: inherit;
+        float: right;
+        border: none;
+        outline: none;
+        cursor: pointer;
+        padding: 14px 16px;
+        transition: 0.3s;
+        font-size: 17px;
+    }
+
+    .dropdown {
+        position: relative;
+        display: inline-block;
+        float: right;
+    }
+
+    .dropdown-content {
+        display: none;
+        position: absolute;
+        background-color: #f1f1f1;
+        min-width: 160px;
+        box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+        z-index: 1;
+    }
+
+    .dropdown-content a {
+        color: black;
+        padding: 12px 16px;
+        text-decoration: none;
+        display: block;
+    }
+
+    .dropdown-content a:hover {
+        background-color: #ddd;
+    }
+
+    .dropdown:hover .dropdown-content {
+        display: block;
+    }
+
+    .dropdown:hover .dropbtn {
+        background-color: inherit;
+    }
+
+    .tr{
+        background: #bf69fd;
+    }
+</style>
+
+
+<h2></h2>
+
+<div class="tab">
     <button class="tablinks" onclick="displayTable(event, 'Current Courses')">Current Courses</button>
     <button class="tablinks" onclick="displayTable(event, 'Manage Enrollment')">Manage Enrollment</button>
-  </div>
-  
-  <div id="Current Courses" class="tabcontent">
-    <div style="overflow-y:auto;">
-      <table id="Course Information">
-        <tr>
-          <th>Course Description</th>
-          <th>Instructor</th>
-          <th>Time</th>
-          <th>Grade</th>
-          <th>Students Enrolled</th>
-        </tr>  
-      </table>
+    <div class="dropdown">
+        <button class="dropbtn" id="Student Greeting"></button>
+        <div class="dropdown-content">
+            <button onclick="LogOut()">Log Out</button>
+        </div>
     </div>
-  </div>
-  
-  <div id="Manage Enrollment" class="tabcontent">
+</div>
+
+<div id="Current Courses" class="tabcontent">
     <div style="overflow-y:auto;">
-      <table id="Enrollment Information">
-        <tr>
-          <th>Course Name</th>
-          <th>Instructor</th>
-          <th>Time</th>
-          <th>Students Enrolled</th>
-          <th>Add Class</th>
-        </tr>
-  
-      </table>
+        <table id="Course Information">
+            <tr class="tr">
+                <th>Course Description</th>
+                <th>Instructor</th>
+                <th>Time</th>
+                <th>Grade</th>
+                <th>Students Enrolled</th>
+            </tr>
+        </table>
     </div>
-  </div>
-  
-  <script>
-  function displayTable(evt, cityName) {
-    var i, tabcontent, tablinks;
-    tabcontent = document.getElementsByClassName("tabcontent");
-    for (i = 0; i < tabcontent.length; i++) {
-      tabcontent[i].style.display = "none";
+</div>
+
+<div id="Manage Enrollment" class="tabcontent">
+    <div style="overflow-y:auto;">
+        <table id="Enrollment Information">
+            <tr class="tr">
+                <th>Course Name</th>
+                <th>Instructor</th>
+                <th>Time</th>
+                <th>Students Enrolled</th>
+                <th>Add Class</th>
+            </tr>
+
+        </table>
+    </div>
+</div>
+
+<script>
+    function displayTable(evt, cityName) {
+        var i, tabcontent, tablinks;
+        tabcontent = document.getElementsByClassName("tabcontent");
+        for (i = 0; i < tabcontent.length; i++) {
+            tabcontent[i].style.display = "none";
+        }
+        tablinks = document.getElementsByClassName("tablinks");
+        for (i = 0; i < tablinks.length; i++) {
+            tablinks[i].className = tablinks[i].className.replace(" active", "");
+        }
+        document.getElementById(cityName).style.display = "block";
+        evt.currentTarget.className += " active";
     }
-    tablinks = document.getElementsByClassName("tablinks");
-    for (i = 0; i < tablinks.length; i++) {
-      tablinks[i].className = tablinks[i].className.replace(" active", "");
-    }
-    document.getElementById(cityName).style.display = "block";
-    evt.currentTarget.className += " active";
-  }
-  </script>
+</script>
 
 </html>

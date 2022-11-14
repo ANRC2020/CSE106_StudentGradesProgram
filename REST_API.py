@@ -19,10 +19,7 @@ except:
 departments, teachers, classes, students, enrollments, admins = Reset_Database()
 app = Flask(__name__)
 
-# app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///SchoolDataBase.sqlite'
-# app.config['SECRET_KEY'] = 'mysecret'
-# db2 = SQLAlchemy(app)
-# CORS(app)
+CORS(app)
 
 engine = db.create_engine(
     'sqlite:///SchoolDataBase.sqlite?check_same_thread=False')
@@ -59,14 +56,14 @@ class Departments(Base):
                          autoload=True, autoload_with=engine)
 
 
-# class Enrollments(Base):
-#     __table__ = db.Table('enrollments', Base.metadata,
-#                          autoload=True, autoload_with=engine)
+class Enrollments(Base):
+    __table__ = db.Table('enrollments', Base.metadata,
+                         autoload=True, autoload_with=engine)
 
 
-# class Teachers(Base):
-#     __table__ = db.Table('teachers', Base.metadata,
-#                          autoload=True, autoload_with=engine)
+class Teachers(Base):
+    __table__ = db.Table('teachers', Base.metadata,
+                         autoload=True, autoload_with=engine)
 
 
 Session = db.orm.sessionmaker(engine)
@@ -338,7 +335,7 @@ def Manage_Enrollment_Drop():
                             ID, enrollments.columns.course_ID == course_ID)
         conn.execute(query)
         print("YEET" + request.json['course'])
-        query = db.update(classes).values(num_students_enrolled=course_Num)
+        query = db.update(classes).values(num_students_enrolled=int.from_bytes((course_Num-1), "little"))
         query = query.where(classes.columns.course_ID == course_ID)
         conn.execute(query)
 
@@ -471,6 +468,6 @@ admin.add_view(ModelView(Students, session))
 admin.add_view(ModelView(Admins, session))
 admin.add_view(ModelView(Classes, session))
 admin.add_view(ModelView(Departments, session))
-# admin.add_view(ModelView(Enrollments, session))
-# admin.add_view(ModelView(Teachers, session))
-app.run(debug=True)
+admin.add_view(ModelView(Enrollments, session))
+admin.add_view(ModelView(Teachers, session))
+app.run()

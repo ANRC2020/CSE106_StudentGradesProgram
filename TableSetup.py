@@ -262,7 +262,7 @@ def Initialize_Classes(teachers):
 
             temp = random.randint(0, len(meets) - 1)
             query = db.insert(classes).values(course_ID=str(course_dic[i] + "_" + str((j*10))), course_Des=course, dep_name=dep_name, teacher_ID=teacher_ID,
-                                              num_students_enrolled=0, capacity=random.randint(4, 10) * 5, times=str(meets[temp][0] + " " + meets[temp][random.randint(1, len(meets[temp]) - 1)]))
+                                              num_students_enrolled=0, capacity=random.randint(4, 10) * 2, times=str(meets[temp][0] + " " + meets[temp][random.randint(1, len(meets[temp]) - 1)]))
             conn.execute(query)
 
             # k += 1
@@ -305,8 +305,8 @@ def Initalize_Enrollments(students, classes):
                                255), nullable=False),
                            db.Column('course_ID', db.String(
                                255), nullable=False),
-                           db.Column('grade', db.Float(10), nullable=False)
-                           # , UniqueConstraint('student_ID', 'course_ID')
+                           db.Column('grade', db.Float(10), nullable=False),
+                           db.Column('enroll_ID', db.Integer(), primary_key=True, nullable=False)
                            )
 
     metadata.create_all(engine)  # Creates the table
@@ -332,6 +332,8 @@ def Initalize_Enrollments(students, classes):
     df = pd.DataFrame(results)
     df.columns = results[0].keys()
 
+    counter = 0
+
     for i in range(df.shape[0]):
         # Student's name
         stud_ID = df.iloc[i][0]
@@ -343,7 +345,7 @@ def Initalize_Enrollments(students, classes):
         stud_courses = []
         stud_times = []
 
-        for i in range(num_classes):
+        for j in range(num_classes):
             # print(f"Num {i + 1} of {num_classes}\n")
 
             while True:
@@ -356,8 +358,10 @@ def Initalize_Enrollments(students, classes):
 
                     # Add row into enrollment about the student and current class
                     query = db.insert(enrollments).values(
-                        student_ID=stud_ID, course_ID=potential_course, grade=randint(60, 100))
+                        student_ID=stud_ID, course_ID=potential_course, grade=randint(60, 100), enroll_ID = counter)
                     conn.execute(query)
+
+                    counter += 1
 
                     course_count[potential_course] += 1
 
@@ -407,7 +411,6 @@ conn = engine.connect()
 metadata = db.MetaData()
 
 # Reset the database
-
 
 def Reset_Database():
 
